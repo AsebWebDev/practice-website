@@ -1,0 +1,20 @@
+---
+import { practice } from '../content';
+
+const photos = ['Foto der Praxis folgt', 'Foto des Teams folgt'];
+---
+
+<div class="grid gap-8 lg:grid-cols-2">
+  <div class="max-w-prose space-y-4">
+    {practice.about.map((paragraph) => (
+      <p>{paragraph}</p>
+    ))}
+  </div>
+  <ul class="grid grid-cols-2 gap-4">
+    {photos.map((label) => (
+      <li class="border-line bg-tint text-muted flex aspect-[4/3] items-center justify-center rounded-2xl border border-dashed p-4 text-center text-sm">
+        {label}
+      </li>
+    ))}
+  </ul>
+</div>

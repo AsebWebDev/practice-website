@@ -1,0 +1,19 @@
+---
+import { notices } from '../content';
+---
+
+{notices.length > 0 && (
+  <aside aria-label="Aktuelle Hinweise" class="bg-accent-strong text-on-accent">
+    <ul class="mx-auto max-w-5xl px-4 sm:px-6">
+      {notices.map((notice) => (
+        <li
+          class="py-3 font-medium"
+          data-notice-from={notice.from}
+          data-notice-until={notice.until}
+        >
+          {notice.text}
+        </li>
+      ))}
+    </ul>
+  </aside>
+)}

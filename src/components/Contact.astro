@@ -1,0 +1,71 @@
+---
+import { practice } from '../content';
+
+const { address, phone, email, directions } = practice;
+
+const details = [
+  { term: 'Bus und Bahn', text: directions.publicTransport },
+  { term: 'Parken', text: directions.parking },
+  { term: 'Barrierefreiheit', text: directions.accessibility },
+];
+---
+
+<div class="grid gap-8 lg:grid-cols-2">
+  <div class="space-y-6">
+    <address class="not-italic">
+      <p class="font-semibold">{practice.name}</p>
+      <p>{address.street}</p>
+      <p>
+        {address.postalCode} {address.city}
+      </p>
+    </address>
+
+    <dl class="space-y-2">
+      <div>
+        <dt class="mr-1 inline font-semibold">Telefon:</dt>
+        <dd class="inline">
+          <a
+            href={`tel:${phone.international}`}
+            class="text-accent-strong inline-block py-2 underline"
+          >
+            {phone.display}
+          </a>
+        </dd>
+      </div>
+      <div>
+        <dt class="mr-1 inline font-semibold">E-Mail:</dt>
+        <dd class="inline">
+          <a
+            href={`mailto:${email}`}
+            class="text-accent-strong inline-block py-2 break-all underline"
+          >
+            {email}
+          </a>
+        </dd>
+      </div>
+    </dl>
+    <p class="text-muted text-sm">
+      Bitte senden Sie uns keine Gesundheitsdaten per E-Mail. E-Mails sind in
+      der Regel nicht verschlüsselt. Rufen Sie uns dafür lieber an.
+    </p>
+
+    <dl class="space-y-4">
+      {details.map(({ term, text }) => (
+        <div>
+          <dt class="font-semibold">{term}</dt>
+          <dd class="text-muted">{text}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+
+  <div class="border-line bg-tint flex min-h-64 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed p-6 text-center">
+    <p class="text-muted text-sm">Kartenausschnitt folgt</p>
+    <a
+      href={directions.mapUrl}
+      class="text-accent-strong inline-block py-2 font-semibold underline"
+    >
+      Karte in OpenStreetMap öffnen
+    </a>
+  </div>
+</div>

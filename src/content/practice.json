@@ -1,6 +1,10 @@
 {
   "name": "Zahnarztpraxis Maria Schuch",
   "greeting": "Willkommen in unserer Praxis. Wir nehmen uns Zeit für Sie und erklären jede Behandlung in Ruhe.",
+  "about": [
+    "Unsere Praxis gibt es seit 2012. Wir behandeln Erwachsene und Kinder und legen Wert darauf, dass Sie verstehen, was wir tun und warum.",
+    "Zum Team gehören neben Maria Schuch zwei zahnmedizinische Fachangestellte. Wir sprechen Deutsch und Englisch."
+  ],
   "address": {
     "street": "Beispielstraße 12",
     "postalCode": "10115",

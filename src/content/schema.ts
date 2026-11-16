@@ -85,6 +85,8 @@ export const servicesSchema = z
 export const practiceSchema = z.object({
   name: text,
   greeting: text,
+  // One entry per paragraph of the "about" section.
+  about: z.array(text).min(1),
   address: z.object({
     street: text,
     postalCode: z.string().regex(/^\d{5}$/, 'must be five digits'),
