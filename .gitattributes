@@ -1,0 +1,2 @@
+# LF everywhere, so Prettier and CI on Linux agree with a Windows checkout
+* text=auto eol=lf
