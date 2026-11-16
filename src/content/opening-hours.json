@@ -1,0 +1,21 @@
+{
+  "days": {
+    "monday": [
+      { "from": "08:00", "to": "12:00" },
+      { "from": "14:00", "to": "18:00" }
+    ],
+    "tuesday": [
+      { "from": "08:00", "to": "12:00" },
+      { "from": "14:00", "to": "18:00" }
+    ],
+    "wednesday": [{ "from": "08:00", "to": "13:00" }],
+    "thursday": [
+      { "from": "08:00", "to": "12:00" },
+      { "from": "14:00", "to": "19:00" }
+    ],
+    "friday": [{ "from": "08:00", "to": "13:00" }],
+    "saturday": [],
+    "sunday": []
+  },
+  "note": "Termine nach Vereinbarung. Bei akuten Schmerzen rufen Sie uns bitte an."
+}
