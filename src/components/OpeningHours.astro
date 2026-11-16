@@ -1,0 +1,40 @@
+---
+import { openingHours } from '../content';
+import { weekdays } from '../content/schema.ts';
+import { formatRange, weekdayLabels } from '../lib/opening-hours.ts';
+---
+
+<div class="max-w-xl">
+  <table class="w-full border-collapse text-left">
+    <caption class="sr-only">Öffnungszeiten nach Wochentag</caption>
+    <thead class="sr-only">
+      <tr>
+        <th scope="col">Wochentag</th>
+        <th scope="col">Geöffnet</th>
+      </tr>
+    </thead>
+    <tbody>
+      {weekdays.map((day) => {
+        const ranges = openingHours.days[day];
+
+        return (
+          <tr data-weekday={day} class="border-line border-b last:border-b-0">
+            <th scope="row" class="py-3 pr-4 align-top font-semibold">
+              {weekdayLabels[day]}
+            </th>
+            <td class="py-3 align-top">
+              {ranges.length === 0 ? (
+                <span class="text-muted">geschlossen</span>
+              ) : (
+                ranges.map((range) => (
+                  <span class="block">{formatRange(range)}</span>
+                ))
+              )}
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+  {openingHours.note && <p class="text-muted mt-4">{openingHours.note}</p>}
+</div>

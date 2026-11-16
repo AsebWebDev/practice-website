@@ -1,1 +1,71 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/plus-jakarta-sans';
+
+/*
+ * Components only use these semantic names. A design direction is a set of
+ * values for the custom properties below, so switching direction never
+ * touches the markup.
+ */
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-tint: var(--tint);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-on-accent: var(--on-accent);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-headings);
+}
+
+/* Direction A: fresh and clear. Sage green on a warm off-white. */
+:root {
+  --page: #f8f6f0;
+  --surface: #ffffff;
+  --tint: #e4ece4;
+  --line: #cfd8cf;
+  --ink: #262b28;
+  --muted: #515c55;
+  --accent: #446650;
+  --accent-strong: #33503d;
+  --on-accent: #ffffff;
+  --font-body:
+    'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-headings: var(--font-body);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--page);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-headings);
+    line-height: 1.2;
+  }
+
+  /* One focus style for every interactive element, visible on all the
+     background colours a direction uses. */
+  :focus-visible {
+    outline: 3px solid var(--accent-strong);
+    outline-offset: 3px;
+    border-radius: 0.25rem;
+  }
+}
