@@ -13,6 +13,11 @@ updates:
       # One pull request per week instead of one per package.
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # The Node types must match the Node version in .nvmrc, so their major
+      # version changes together with that file.
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
