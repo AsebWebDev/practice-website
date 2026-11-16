@@ -1,4 +1,5 @@
-import type { TimeRange, Weekday } from '../content/schema.ts';
+import type { TimeRange } from '../content/schema.ts';
+import type { Weekday } from './weekdays.ts';
 
 export const weekdayLabels: Record<Weekday, string> = {
   monday: 'Montag',

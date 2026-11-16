@@ -6,8 +6,8 @@ import {
   parseContent,
   practiceSchema,
   servicesSchema,
-  weekdays,
 } from '../src/content/schema.ts';
+import { weekdays } from '../src/lib/weekdays.ts';
 
 const closedAllWeek = Object.fromEntries(weekdays.map((day) => [day, []]));
 

@@ -69,3 +69,17 @@
     border-radius: 0.25rem;
   }
 }
+
+@layer components {
+  /* Today's row is marked with aria-current, which the build sets and the
+     browser script corrects. The word "heute" makes the highlight readable
+     without relying on colour. */
+  .opening-hours tr[aria-current='date'] {
+    background-color: var(--tint);
+  }
+
+  .opening-hours tr[aria-current='date'] th::after {
+    content: ' (heute)';
+    font-weight: 400;
+  }
+}
