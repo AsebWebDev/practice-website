@@ -1,0 +1,20 @@
+{
+  "name": "Zahnarztpraxis Maria Schuch",
+  "greeting": "Willkommen in unserer Praxis. Wir nehmen uns Zeit für Sie und erklären jede Behandlung in Ruhe.",
+  "address": {
+    "street": "Beispielstraße 12",
+    "postalCode": "10115",
+    "city": "Berlin"
+  },
+  "phone": {
+    "display": "030 23125 482",
+    "international": "+493023125482"
+  },
+  "email": "praxis@zahnarzt-schuch.example",
+  "directions": {
+    "publicTransport": "U-Bahn U6 bis Beispielplatz, von dort drei Minuten zu Fuß. Die Buslinie 142 hält direkt vor dem Haus.",
+    "parking": "Zwei Kundenparkplätze im Hof. Weitere Parkplätze finden Sie in der Seitenstraße.",
+    "accessibility": "Die Praxis liegt im Erdgeschoss und ist stufenlos erreichbar. Ein barrierefreies WC ist vorhanden.",
+    "mapUrl": "https://www.openstreetmap.org/?mlat=52.5320&mlon=13.3880#map=17/52.5320/13.3880"
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "icon": "checkup",
+    "title": "Vorsorge und Prophylaxe",
+    "description": "Regelmäßige Kontrollen helfen, Probleme früh zu erkennen. Bei der professionellen Zahnreinigung entfernen wir Beläge, die die Zahnbürste nicht erreicht."
+  },
+  {
+    "icon": "filling",
+    "title": "Füllungen",
+    "description": "Wir behandeln Karies so schonend wie möglich. Welches Material für Ihre Füllung in Frage kommt, besprechen wir vorher mit Ihnen."
+  },
+  {
+    "icon": "prosthetics",
+    "title": "Zahnersatz",
+    "description": "Kronen, Brücken und Prothesen ersetzen fehlende oder stark beschädigte Zähne. Wir beraten Sie zu den Möglichkeiten und zu den Kosten."
+  },
+  {
+    "icon": "root-canal",
+    "title": "Wurzelbehandlung",
+    "description": "Ist der Zahnnerv entzündet, kann eine Wurzelbehandlung den Zahn häufig erhalten. Die Behandlung erfolgt unter örtlicher Betäubung."
+  },
+  {
+    "icon": "children",
+    "title": "Kinderzahnheilkunde",
+    "description": "Kinder lernen die Praxis bei uns in ihrem eigenen Tempo kennen. Wir erklären jeden Schritt in Worten, die sie verstehen."
+  },
+  {
+    "icon": "anxiety",
+    "title": "Behandlung bei Zahnarztangst",
+    "description": "Viele Menschen gehen ungern zum Zahnarzt. Sagen Sie uns Bescheid, dann planen wir mehr Zeit ein und besprechen jeden Schritt, bevor wir beginnen."
+  }
+]
