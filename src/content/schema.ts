@@ -23,18 +23,6 @@ const dayHours = z.array(timeRange).refine(
   { message: 'time ranges must be in order and must not overlap' },
 );
 
-export const weekdays = [
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-  'sunday',
-] as const;
-
-export type Weekday = (typeof weekdays)[number];
-
 export const openingHoursSchema = z.object({
   days: z.object({
     monday: dayHours,

@@ -1,11 +1,14 @@
 ---
 import { openingHours } from '../content';
-import { weekdays } from '../content/schema.ts';
+import { berlinToday } from '../lib/dates.ts';
 import { formatRange, weekdayLabels } from '../lib/opening-hours.ts';
+import { weekdays } from '../lib/weekdays.ts';
+
+const today = berlinToday(new Date()).weekday;
 ---
 
 <div class="max-w-xl">
-  <table class="w-full border-collapse text-left">
+  <table class="opening-hours w-full border-collapse text-left">
     <caption class="sr-only">Öffnungszeiten nach Wochentag</caption>
     <thead class="sr-only">
       <tr>
@@ -18,16 +21,22 @@ import { formatRange, weekdayLabels } from '../lib/opening-hours.ts';
         const ranges = openingHours.days[day];
 
         return (
-          <tr data-weekday={day} class="border-line border-b last:border-b-0">
-            <th scope="row" class="py-3 pr-4 align-top font-semibold">
+          <tr
+            data-weekday={day}
+            aria-current={day === today ? 'date' : undefined}
+            class="border-line border-b last:border-b-0"
+          >
+            <th scope="row" class="px-2 py-3 align-top font-semibold sm:px-3">
               {weekdayLabels[day]}
             </th>
-            <td class="py-3 align-top">
+            <td class="px-2 py-3 align-top sm:px-3">
               {ranges.length === 0 ? (
                 <span class="text-muted">geschlossen</span>
               ) : (
                 ranges.map((range) => (
-                  <span class="block">{formatRange(range)}</span>
+                  <span class="block whitespace-nowrap">
+                    {formatRange(range)}
+                  </span>
                 ))
               )}
             </td>
