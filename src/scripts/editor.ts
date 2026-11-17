@@ -37,6 +37,9 @@ const rangeTemplate = $<HTMLTemplateElement>('#range-template');
 const noticeTemplate = $<HTMLTemplateElement>('#notice-template');
 
 let dirty = false;
+// The state the form started from, sent back when saving so the API can
+// refuse the save if someone else saved in between.
+let version: Record<string, string> = {};
 let nextId = 0;
 
 function show(view: View) {
@@ -269,11 +272,13 @@ async function save(event: SubmitEvent) {
     const response = await fetch(contentUrl, {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(checked.data),
+      body: JSON.stringify({ ...checked.data, version }),
     });
 
     if (response.ok) {
       dirty = false;
+      version = ((await response.json()) as { version: typeof version })
+        .version;
       const time = new Intl.DateTimeFormat('de-DE', {
         timeStyle: 'short',
         timeZone: 'Europe/Berlin',
@@ -282,6 +287,9 @@ async function save(event: SubmitEvent) {
     } else if (response.status === 400) {
       const body = (await response.json()) as { issues?: Issue[] };
       showErrors(body.issues ?? []);
+    } else if (response.status === 409) {
+      status.textContent =
+        'Jemand anderes hat in der Zwischenzeit gespeichert. Damit nichts verloren geht, wurde Ihre Änderung nicht übernommen. Bitte merken Sie sich Ihre Änderung, laden Sie die Seite neu und tragen Sie sie noch einmal ein.';
     } else if (response.status === 401 || response.status === 403) {
       status.textContent =
         'Ihre Anmeldung ist abgelaufen. Bitte laden Sie die Seite neu und melden Sie sich an. Ihre Eingaben gehen dabei verloren.';
@@ -320,6 +328,7 @@ type Content = {
     note?: string;
   };
   notices: (Omit<RawNotice, 'from'> & { from?: string })[];
+  version?: Record<string, string>;
 };
 
 async function start() {
@@ -353,6 +362,7 @@ async function start() {
     if (!response.ok)
       throw new Error(`${contentUrl} answered ${response.status}`);
     content = (await response.json()) as Content;
+    version = content.version ?? {};
   } catch {
     show('unavailable');
     return;
