@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/check-dist.ts",
+    "build": "astro build && node scripts/check-dist.ts && pnpm --dir api build",
     "preview": "astro preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -34,6 +34,7 @@
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",
     "@fontsource-variable/manrope": "^5.3.0",
-    "@fontsource-variable/plus-jakarta-sans": "^5.3.0"
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
+    "zod": "4.6.7"
   }
 }
