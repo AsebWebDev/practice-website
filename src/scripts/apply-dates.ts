@@ -8,11 +8,16 @@ export function applyDates(now = new Date()) {
   const today = berlinToday(now);
 
   for (const row of document.querySelectorAll<HTMLElement>('[data-weekday]')) {
-    if (row.dataset.weekday === today.weekday) {
+    const isToday = row.dataset.weekday === today.weekday;
+
+    if (isToday) {
       row.setAttribute('aria-current', 'date');
     } else {
       row.removeAttribute('aria-current');
     }
+
+    const label = row.querySelector<HTMLElement>('[data-today-label]');
+    if (label) label.hidden = !isToday;
   }
 
   const noticeBar = document.querySelector<HTMLElement>('[data-notices]');

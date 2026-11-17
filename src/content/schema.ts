@@ -42,7 +42,7 @@ export const openingHoursSchema = z.object({
     saturday: dayHours,
     sunday: dayHours,
   }),
-  note: text.optional(),
+  note: text.max(200, 'Bitte höchstens 200 Zeichen.').optional(),
 });
 
 const date = z.iso.date('Bitte ein Datum wählen.');
@@ -50,7 +50,8 @@ const date = z.iso.date('Bitte ein Datum wählen.');
 export const noticeSchema = z
   .object({
     kind: z.enum(['info', 'closed'], 'Bitte eine Art wählen.'),
-    text,
+    // Keeps the notice bar readable on a phone.
+    text: text.max(300, 'Bitte höchstens 300 Zeichen.'),
     // Without "from" the notice shows as soon as it is published.
     from: date.optional(),
     // The last day on which the notice is shown.

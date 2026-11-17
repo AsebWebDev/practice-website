@@ -28,6 +28,10 @@ const today = berlinToday(new Date()).weekday;
           >
             <th scope="row" class="px-2 py-3 align-top font-semibold sm:px-3">
               {weekdayLabels[day]}
+              <span data-today-label class="font-normal" hidden={day !== today}>
+                {/* Astro drops the line break, so the space is written out. */}
+                {' (heute)'}
+              </span>
             </th>
             <td class="px-2 py-3 align-top sm:px-3">
               {ranges.length === 0 ? (

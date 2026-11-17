@@ -199,13 +199,17 @@ function showErrors(issues: Issue[]) {
   const list = $<HTMLUListElement>('ul', summary);
 
   for (const issue of issues) {
+    // Paths can come from the server, so they are escaped before they go
+    // into a selector.
+    const byPath = (path: string) =>
+      form.querySelector<HTMLElement>(`[data-path="${CSS.escape(path)}"]`);
     let path = issuePath(issue);
-    let target = form.querySelector<HTMLElement>(`[data-path="${path}"]`);
+    let target = byPath(path);
 
     // A message about a whole range belongs to its day.
     while (!target && path.includes('.')) {
       path = path.slice(0, path.lastIndexOf('.'));
-      target = form.querySelector<HTMLElement>(`[data-path="${path}"]`);
+      target = byPath(path);
     }
     if (!target) continue;
 

@@ -7,7 +7,7 @@ export type StoredContent = Partial<Record<ContentKey, unknown>>;
 /** Where the editable content lives. Tests use an in-memory version. */
 export interface ContentStore {
   read(): Promise<StoredContent>;
-  write(content: Record<ContentKey, unknown>, editor: string): Promise<void>;
+  write(content: Record<ContentKey, unknown>): Promise<void>;
 }
 
 const tableName = 'content';
@@ -17,7 +17,6 @@ type ContentEntity = {
   partitionKey: string;
   rowKey: ContentKey;
   json: string;
-  updatedBy: string;
 };
 
 /**
@@ -56,8 +55,12 @@ export class TableContentStore implements ContentStore {
       });
 
       for await (const row of rows) {
-        if (row.rowKey === 'openingHours' || row.rowKey === 'notices') {
+        if (row.rowKey !== 'openingHours' && row.rowKey !== 'notices') continue;
+        try {
           content[row.rowKey] = JSON.parse(row.json);
+        } catch {
+          // A damaged row is left out, so only this part falls back to the
+          // built content and the other part still shows what was saved.
         }
       }
 
@@ -65,7 +68,7 @@ export class TableContentStore implements ContentStore {
     });
   }
 
-  write(content: Record<ContentKey, unknown>, editor: string): Promise<void> {
+  write(content: Record<ContentKey, unknown>): Promise<void> {
     return this.withTable(async () => {
       await this.client.submitTransaction(
         (Object.keys(content) as ContentKey[]).map((rowKey) => [
@@ -74,7 +77,6 @@ export class TableContentStore implements ContentStore {
             partitionKey,
             rowKey,
             json: JSON.stringify(content[rowKey]),
-            updatedBy: editor,
           } satisfies ContentEntity,
           'Replace',
         ]),
