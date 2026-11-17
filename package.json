@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "typecheck": "astro check",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "fetch-content": "node scripts/fetch-content.ts"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
