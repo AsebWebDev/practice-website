@@ -1,0 +1,22 @@
+---
+import PracticePage from '../components/PracticePage.astro';
+import { designs, type DesignId } from '../lib/designs.ts';
+
+interface Props {
+  design: DesignId;
+}
+
+// The first direction lives at the start page, the others get a page each.
+export function getStaticPaths() {
+  return designs
+    .filter((design) => design.path !== '')
+    .map((design) => ({
+      params: { design: design.id },
+      props: { design: design.id },
+    }));
+}
+
+const { design } = Astro.props;
+---
+
+<PracticePage design={design} />

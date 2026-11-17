@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/plus-jakarta-sans';
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/manrope';
 
 /*
  * Components only use these semantic names. A design direction is a set of
@@ -34,6 +36,35 @@
   --font-body:
     'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
   --font-headings: var(--font-body);
+}
+
+/* Direction B: warm and familiar. Sand and cream with terracotta, and a
+   soft serif for headings. */
+:root[data-design='b'] {
+  --page: #f7f1e6;
+  --surface: #fffdf8;
+  --tint: #efe4d2;
+  --line: #dccfb8;
+  --ink: #33302c;
+  --muted: #5e574e;
+  --accent: #a3472b;
+  --accent-strong: #823821;
+  --on-accent: #ffffff;
+  --font-headings: 'Fraunces Variable', Georgia, serif;
+}
+
+/* Direction C: calm and modern. Deep petrol on a light blue-grey. */
+:root[data-design='c'] {
+  --page: #f3f6f8;
+  --surface: #ffffff;
+  --tint: #dde6ec;
+  --line: #c3d0d9;
+  --ink: #18262e;
+  --muted: #4a5a65;
+  --accent: #0f5a6e;
+  --accent-strong: #0b4252;
+  --on-accent: #ffffff;
+  --font-body: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {

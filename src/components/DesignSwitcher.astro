@@ -1,0 +1,35 @@
+---
+import { designs, sitePath, type DesignId } from '../lib/designs.ts';
+
+interface Props {
+  current: DesignId;
+}
+
+const { current } = Astro.props;
+const currentName = designs.find((design) => design.id === current)?.name;
+---
+
+<!-- Fixed neutral colours, so the switcher looks the same in every direction
+     and is not mistaken for part of the design. On a phone only the letters
+     show, so the practice's own header stays in the first screen. -->
+<nav aria-label="Designrichtung wählen" class="bg-neutral-900 text-white">
+  <div class="mx-auto flex max-w-5xl items-center gap-3 px-4 py-2 sm:gap-4 sm:px-6">
+    <p class="text-sm font-semibold">
+      Entwurf<span class="sm:hidden">: {currentName}</span>
+    </p>
+    <ul class="ml-auto flex gap-2 sm:ml-0">
+      {designs.map((design) => (
+        <li>
+          <a
+            href={sitePath(design.path)}
+            aria-current={design.id === current ? 'page' : undefined}
+            class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white px-3 text-sm font-semibold no-underline hover:bg-neutral-700 focus-visible:outline-white aria-[current=page]:bg-white aria-[current=page]:text-neutral-900 sm:px-4"
+          >
+            {design.id.toUpperCase()}
+            <span class="sr-only sm:not-sr-only">: {design.name}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</nav>
