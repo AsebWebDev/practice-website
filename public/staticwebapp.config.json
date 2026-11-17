@@ -1,5 +1,48 @@
 {
   "platform": {
     "apiRuntime": "node:22"
+  },
+  "routes": [
+    {
+      "route": "/.auth/login/github",
+      "statusCode": 404
+    },
+    {
+      "route": "/pflege/index.html",
+      "allowedRoles": ["editor"]
+    },
+    {
+      "route": "/pflege/*",
+      "allowedRoles": ["editor"]
+    },
+    {
+      "route": "/pflege*",
+      "allowedRoles": ["editor"]
+    },
+    {
+      "route": "/api/content",
+      "methods": ["PUT", "POST", "PATCH", "DELETE"],
+      "allowedRoles": ["editor"]
+    }
+  ],
+  "responseOverrides": {
+    "401": {
+      "statusCode": 302,
+      "redirect": "/.auth/login/aad?post_login_redirect_uri=.referrer"
+    },
+    "403": {
+      "rewrite": "/kein-zugriff/"
+    },
+    "404": {
+      "rewrite": "/404.html"
+    }
+  },
+  "globalHeaders": {
+    "Content-Security-Policy": "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'",
+    "Strict-Transport-Security": "max-age=63072000",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+    "Cross-Origin-Opener-Policy": "same-origin"
   }
 }

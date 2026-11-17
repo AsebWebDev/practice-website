@@ -19,7 +19,11 @@ export type Log = { error(...args: unknown[]): void };
 // A full week of hours and a long list of notices stay well below this.
 const maxBodyBytes = 64 * 1024;
 
-const noStore = { 'cache-control': 'no-store' };
+// Static Web Apps does not add its global headers to API responses.
+const noStore = {
+  'cache-control': 'no-store',
+  'x-content-type-options': 'nosniff',
+};
 
 /**
  * The current opening hours and notices. Each part falls back to what the

@@ -1,0 +1,20 @@
+---
+// Azure shows this page instead of the editing page to people who are
+// signed in but have not been invited to edit.
+import SimplePage from '../components/SimplePage.astro';
+---
+
+<SimplePage title="Kein Zugriff">
+  <p>
+    Ihr Konto ist nicht für die Pflege der Webseite freigeschaltet. Bitte wenden
+    Sie sich an die Praxisleitung.
+  </p>
+  <p>
+    <a
+      href="/.auth/logout?post_logout_redirect_uri=/pflege/"
+      class="text-accent-strong underline"
+    >
+      Mit einem anderen Konto anmelden
+    </a>
+  </p>
+</SimplePage>

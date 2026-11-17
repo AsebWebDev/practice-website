@@ -1,0 +1,28 @@
+---
+import { practice } from '../content';
+import '../styles/global.css';
+import DraftBanner from './DraftBanner.astro';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}: {practice.name}</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body>
+    <DraftBanner />
+    <main class="mx-auto max-w-3xl space-y-4 px-4 py-12 sm:px-6">
+      <h1 class="font-heading text-2xl font-semibold sm:text-3xl">{title}</h1>
+      <slot />
+    </main>
+  </body>
+</html>

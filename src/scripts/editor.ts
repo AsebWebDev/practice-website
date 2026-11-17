@@ -1,3 +1,5 @@
+// Must stay the first import, see the module.
+import '../lib/zod-without-eval.ts';
 import { editableContentSchema } from '../content/schema.ts';
 import { berlinToday, isNoticeExpired } from '../lib/dates.ts';
 import {
@@ -284,8 +286,11 @@ async function save(event: SubmitEvent) {
         'Speichern hat nicht geklappt. Bitte versuchen Sie es gleich noch einmal.';
     }
   } catch {
-    status.textContent =
-      'Keine Verbindung. Bitte prüfen Sie Ihr Internet und versuchen Sie es noch einmal.';
+    // An expired sign-in also ends up here: Azure answers with a redirect
+    // to the Microsoft login, which a background request cannot follow.
+    status.textContent = (await isSignedIn())
+      ? 'Keine Verbindung. Bitte prüfen Sie Ihr Internet und versuchen Sie es noch einmal.'
+      : 'Ihre Anmeldung ist abgelaufen. Bitte laden Sie die Seite neu und melden Sie sich an. Ihre Eingaben gehen dabei verloren.';
   } finally {
     saveButton.disabled = false;
     saveButton.textContent = 'Speichern';
@@ -293,6 +298,17 @@ async function save(event: SubmitEvent) {
 }
 
 type Principal = { userDetails: string; userRoles: string[] };
+
+async function isSignedIn(): Promise<boolean> {
+  try {
+    const me = await fetch(meUrl);
+    const body = (await me.json()) as { clientPrincipal: Principal | null };
+    return body.clientPrincipal !== null;
+  } catch {
+    // Unknown; the caller then assumes a network problem.
+    return true;
+  }
+}
 
 type Content = {
   openingHours: {

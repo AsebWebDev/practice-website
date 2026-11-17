@@ -1,0 +1,13 @@
+---
+import SimplePage from '../components/SimplePage.astro';
+import { sitePath } from '../lib/designs.ts';
+---
+
+<SimplePage title="Seite nicht gefunden">
+  <p>Diese Seite gibt es nicht, oder nicht mehr.</p>
+  <p>
+    <a href={sitePath('')} class="text-accent-strong underline">
+      Zur Startseite
+    </a>
+  </p>
+</SimplePage>
