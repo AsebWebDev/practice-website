@@ -8,4 +8,11 @@ export default defineConfig(
   js.configs.recommended,
   tseslint.configs.recommended,
   astro.configs.recommended,
+  {
+    // Config files run in Node, not in the browser.
+    files: ['*.config.{js,mjs,ts}'],
+    languageOptions: {
+      globals: { process: 'readonly' },
+    },
+  },
 );

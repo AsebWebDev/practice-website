@@ -6,6 +6,7 @@ import About from './About.astro';
 import Button from './Button.astro';
 import Contact from './Contact.astro';
 import DesignSwitcher from './DesignSwitcher.astro';
+import DraftBanner from './DraftBanner.astro';
 import Logo from './Logo.astro';
 import Notices from './Notices.astro';
 import OpeningHours from './OpeningHours.astro';
@@ -24,8 +25,9 @@ const { design } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{practice.name}</title>
+    <title>Entwurf: {practice.name}</title>
     <meta name="description" content={practice.greeting} />
+    <meta name="robots" content="noindex, nofollow" />
   </head>
   <body>
     <a
@@ -35,6 +37,7 @@ const { design } = Astro.props;
       Zum Inhalt springen
     </a>
 
+    <DraftBanner />
     <DesignSwitcher current={design} />
 
     <header class="bg-tint">
