@@ -1,3 +1,8 @@
 # Only install versions that have been public for 14 days (value in minutes),
 # so a compromised release is likely to be caught before it reaches this project.
 minimumReleaseAge: 20160
+
+# The site at the root and the Azure Functions behind /api.
+packages:
+  - .
+  - api
