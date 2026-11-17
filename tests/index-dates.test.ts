@@ -39,7 +39,9 @@ describe('the start page at build time', () => {
   test('leaves the notice out once its last day has passed', async () => {
     const html = await renderAt('2027-01-03T10:00:00Z');
 
-    expect(html).not.toContain('data-notices');
+    // The empty bar stays in the page for notices the API may deliver.
+    expect(html).toMatch(/<aside[^>]*data-notices[^>]*\shidden/);
+    expect(html).not.toMatch(/<li[^>]*data-notice-until/);
     expect(html).not.toContain('23. Dezember');
   });
 
