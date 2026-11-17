@@ -22,11 +22,16 @@ const currentName = designs.find((design) => design.id === current)?.name;
         <li>
           <a
             href={sitePath(design.path)}
+            aria-label={`${design.id.toUpperCase()}: ${design.name}`}
             aria-current={design.id === current ? 'page' : undefined}
             class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white px-3 text-sm font-semibold no-underline hover:bg-neutral-700 focus-visible:outline-white aria-[current=page]:bg-white aria-[current=page]:text-neutral-900 sm:px-4"
           >
+            {/* The name comes from aria-label: built from the visible parts,
+                screen readers would read a space before the colon. */}
             {design.id.toUpperCase()}
-            <span class="sr-only sm:not-sr-only">: {design.name}</span>
+            <span aria-hidden="true" class="hidden sm:inline">
+              : {design.name}
+            </span>
           </a>
         </li>
       ))}

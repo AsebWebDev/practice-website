@@ -36,3 +36,7 @@ PLAN.md
 ROADMAP.md
 CLAUDE.md
 .claude/
+
+# playwright output
+/blob-report/
+/playwright/.cache/
