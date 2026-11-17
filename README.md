@@ -46,3 +46,19 @@ The digest pins Azurite 3.37.0.
 ## Content
 
 Opening hours, notices, services and practice details live in `src/content/` and are checked against `src/content/schema.ts` at build time. A file that fails the check stops the build, and the published site stays as it is.
+
+## Infrastructure
+
+`infra/` describes the Azure resources with Terraform: a resource group, a storage account with the `content` table, the Static Web App (Free plan) with the storage connection as app setting, and a monthly budget alert.
+
+```bash
+cd infra
+cp terraform.tfvars.example terraform.tfvars   # fill in; the file is ignored by git
+terraform init
+terraform plan -out=site.tfplan
+terraform apply site.tfplan
+```
+
+Plan again right before every apply. The state file holds the storage key and the deployment token, so it never goes into the repository.
+
+Static Web Apps exists in few regions, and West Europe only accepts tenants that are new to it after a request to Microsoft support. `static_web_app_location` can point elsewhere until that is settled.
