@@ -36,6 +36,13 @@ export class TableContentStore implements ContentStore {
         allowInsecureConnection: connectionString.includes(
           'TableEndpoint=http://',
         ),
+        // Fail fast: the site falls back to its built content, and a person
+        // saving would rather see an error than wait.
+        retryOptions: {
+          maxRetries: 2,
+          retryDelayInMs: 200,
+          maxRetryDelayInMs: 1000,
+        },
       }),
     );
   }

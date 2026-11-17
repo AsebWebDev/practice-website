@@ -5,29 +5,28 @@ import { berlinToday, isNoticeActive, isNoticeExpired } from '../lib/dates.ts';
 const today = berlinToday(new Date()).date;
 
 // Notices that start later are shipped hidden, so the browser script can
-// show them on their start date without a new build.
+// show them on their start date without a new build. The bar is always in
+// the page, because the script may receive notices the build did not know.
 const current = notices.filter((notice) => !isNoticeExpired(notice, today));
 const anyActive = current.some((notice) => isNoticeActive(notice, today));
 ---
 
-{current.length > 0 && (
-  <aside
-    aria-label="Aktuelle Hinweise"
-    class="bg-accent-strong text-on-accent"
-    data-notices
-    hidden={!anyActive}
-  >
-    <ul class="mx-auto max-w-5xl px-4 sm:px-6">
-      {current.map((notice) => (
-        <li
-          class="py-3 font-medium"
-          data-notice-from={notice.from}
-          data-notice-until={notice.until}
-          hidden={!isNoticeActive(notice, today)}
-        >
-          {notice.text}
-        </li>
-      ))}
-    </ul>
-  </aside>
-)}
+<aside
+  aria-label="Aktuelle Hinweise"
+  class="bg-accent-strong text-on-accent"
+  data-notices
+  hidden={!anyActive}
+>
+  <ul class="mx-auto max-w-5xl px-4 sm:px-6">
+    {current.map((notice) => (
+      <li
+        class="py-3 font-medium"
+        data-notice-from={notice.from}
+        data-notice-until={notice.until}
+        hidden={!isNoticeActive(notice, today)}
+      >
+        {notice.text}
+      </li>
+    ))}
+  </ul>
+</aside>

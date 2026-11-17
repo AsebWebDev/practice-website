@@ -1,20 +1,23 @@
 import { berlinToday, isNoticeActive } from '../lib/dates.ts';
 
-// The HTML was built some time ago and shows what was true then. This
-// brings the two date-dependent parts up to the visitor's present.
-const today = berlinToday(new Date());
+/**
+ * The HTML was built some time ago and shows what was true then. This
+ * brings the two date-dependent parts up to the visitor's present.
+ */
+export function applyDates(now = new Date()) {
+  const today = berlinToday(now);
 
-for (const row of document.querySelectorAll<HTMLElement>('[data-weekday]')) {
-  if (row.dataset.weekday === today.weekday) {
-    row.setAttribute('aria-current', 'date');
-  } else {
-    row.removeAttribute('aria-current');
+  for (const row of document.querySelectorAll<HTMLElement>('[data-weekday]')) {
+    if (row.dataset.weekday === today.weekday) {
+      row.setAttribute('aria-current', 'date');
+    } else {
+      row.removeAttribute('aria-current');
+    }
   }
-}
 
-const noticeBar = document.querySelector<HTMLElement>('[data-notices]');
+  const noticeBar = document.querySelector<HTMLElement>('[data-notices]');
+  if (!noticeBar) return;
 
-if (noticeBar) {
   let visible = 0;
 
   for (const item of noticeBar.querySelectorAll<HTMLElement>(

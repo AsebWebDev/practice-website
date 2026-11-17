@@ -45,5 +45,7 @@ const today = berlinToday(new Date()).weekday;
       })}
     </tbody>
   </table>
-  {openingHours.note && <p class="text-muted mt-4">{openingHours.note}</p>}
+  <p class="text-muted mt-4" data-hours-note hidden={!openingHours.note}>
+    {openingHours.note}
+  </p>
 </div>
