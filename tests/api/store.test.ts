@@ -25,7 +25,7 @@ describe('TableContentStore', () => {
     const client = fakeClient();
     const subject = store(client);
 
-    await subject.write(content, 'maria');
+    await subject.write(content);
     await subject.read();
 
     expect(client.createTable).toHaveBeenCalledOnce();
@@ -37,7 +37,7 @@ describe('TableContentStore', () => {
     await subject.read();
     client.submitTransaction.mockRejectedValueOnce(notFound);
 
-    await subject.write(content, 'maria');
+    await subject.write(content);
 
     expect(client.createTable).toHaveBeenCalledTimes(2);
     expect(client.submitTransaction).toHaveBeenCalledTimes(2);
@@ -59,9 +59,17 @@ describe('TableContentStore', () => {
       Object.assign(new Error('Forbidden'), { statusCode: 403 }),
     );
 
-    await expect(store(client).write(content, 'maria')).rejects.toThrow(
-      'Forbidden',
-    );
+    await expect(store(client).write(content)).rejects.toThrow('Forbidden');
     expect(client.submitTransaction).toHaveBeenCalledOnce();
+  });
+
+  test('leaves out a damaged row and keeps the other part', async () => {
+    const client = fakeClient();
+    client.listEntities.mockImplementation(async function* () {
+      yield { rowKey: 'openingHours', json: '{broken' };
+      yield { rowKey: 'notices', json: '[]' };
+    });
+
+    await expect(store(client).read()).resolves.toEqual({ notices: [] });
   });
 });

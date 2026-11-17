@@ -21,9 +21,16 @@ const errorText = 'mt-1 text-sm font-semibold text-red-800';
     <meta name="robots" content="noindex, nofollow" />
   </head>
   <body>
+    <a
+      href="#inhalt"
+      class="bg-surface text-ink sr-only rounded-full px-4 py-2 font-semibold focus:not-sr-only focus:absolute focus:top-2 focus:left-2"
+    >
+      Zum Inhalt springen
+    </a>
+
     <DraftBanner />
 
-    <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+    <main id="inhalt" class="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
       <h1 class="font-heading text-2xl font-semibold sm:text-3xl">
         Öffnungszeiten und Hinweise
       </h1>
@@ -119,7 +126,7 @@ const errorText = 'mt-1 text-sm font-semibold text-red-800';
 
           <div data-wrapper class="mt-4">
             <label for="note" class="font-semibold">
-              Satz unter der Tabelle (freiwillig)
+              Satz unter der Tabelle (freiwillig, höchstens 200 Zeichen)
             </label>
             <textarea
               id="note"
@@ -210,7 +217,7 @@ const errorText = 'mt-1 text-sm font-semibold text-red-800';
             </div>
             <div data-wrapper>
               <label class="text-sm font-semibold">
-                Text
+                Text (höchstens 300 Zeichen)
                 <textarea
                   data-field="text"
                   rows="3"

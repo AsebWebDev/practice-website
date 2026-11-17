@@ -56,6 +56,20 @@ export async function getContent(
   };
 }
 
+/**
+ * Whether a browser sent this request on behalf of another website, as in a
+ * cross-site request forgery. Browsers mark every request with the
+ * Sec-Fetch-Site header; requests without it do not come from a page and
+ * cannot carry the editor's sign-in cookie by accident.
+ *
+ * Saving with PUT already needs a CORS preflight that Static Web Apps does
+ * not answer, so this is a second, explicit line of defence.
+ */
+function isCrossSite(request: Request): boolean {
+  const site = request.headers.get('sec-fetch-site');
+  return site !== null && site !== 'same-origin';
+}
+
 /** Saves opening hours and notices. Only for users with the editor role. */
 export async function saveContent(
   request: Request,
@@ -69,6 +83,9 @@ export async function saveContent(
   }
   if (!isEditor(principal)) {
     return { status: 403, jsonBody: { error: 'Not allowed to edit.' } };
+  }
+  if (isCrossSite(request)) {
+    return { status: 403, jsonBody: { error: 'Request from another site.' } };
   }
   if (!store) {
     log.error('CONTENT_STORAGE is not set, so nothing can be saved');
@@ -104,7 +121,7 @@ export async function saveContent(
   }
 
   try {
-    await store.write(parsed.data, principal.userDetails || principal.userId);
+    await store.write(parsed.data);
   } catch (error) {
     log.error('Writing the content store failed', error);
     return { status: 502, jsonBody: { error: 'Saving failed.' } };

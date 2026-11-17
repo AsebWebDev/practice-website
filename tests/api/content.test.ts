@@ -13,15 +13,15 @@ import { notices, openingHours } from '../../src/content';
 
 class MemoryStore implements ContentStore {
   content: StoredContent = {};
-  editors: string[] = [];
+  writes = 0;
 
   async read() {
     return structuredClone(this.content);
   }
 
-  async write(content: Record<ContentKey, unknown>, editor: string) {
+  async write(content: Record<ContentKey, unknown>) {
     this.content = structuredClone(content);
-    this.editors.push(editor);
+    this.writes += 1;
   }
 }
 
@@ -37,11 +37,15 @@ const principal = (roles: string[]) =>
     }),
   ).toString('base64');
 
-function request(body: unknown, header?: string): Request {
+function request(body: unknown, header?: string, fetchSite?: string): Request {
   return {
     headers: {
       get: (name) =>
-        name === 'x-ms-client-principal' ? (header ?? null) : null,
+        name === 'x-ms-client-principal'
+          ? (header ?? null)
+          : name === 'sec-fetch-site'
+            ? (fetchSite ?? null)
+            : null,
     },
     text: async () => (typeof body === 'string' ? body : JSON.stringify(body)),
   };
@@ -104,7 +108,7 @@ describe('saving', () => {
     const response = await saveContent(request(valid), store, log);
 
     expect(response.status).toBe(401);
-    expect(store.editors).toEqual([]);
+    expect(store.writes).toBe(0);
   });
 
   test('rejects a signed-in user without the editor role', async () => {
@@ -116,7 +120,7 @@ describe('saving', () => {
     );
 
     expect(response.status).toBe(403);
-    expect(store.editors).toEqual([]);
+    expect(store.writes).toBe(0);
   });
 
   test('treats a forged, unreadable header as not signed in', async () => {
@@ -129,7 +133,7 @@ describe('saving', () => {
     expect(response.status).toBe(401);
   });
 
-  test('stores valid content for an editor and names who saved it', async () => {
+  test('stores valid content for an editor', async () => {
     const store = new MemoryStore();
     const response = await saveContent(
       request(valid, principal(['editor'])),
@@ -138,7 +142,7 @@ describe('saving', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(store.editors).toEqual(['praxis@example.com']);
+    expect(store.writes).toBe(1);
 
     const read = await getContent(store, log);
     expect(read.jsonBody).toEqual(valid);
@@ -174,7 +178,7 @@ describe('saving', () => {
 
     expect(response.status).toBe(400);
     expect(response.jsonBody).toMatchObject({ error: 'Invalid content.' });
-    expect(store.editors).toEqual([]);
+    expect(store.writes).toBe(0);
   });
 
   test('rejects a body that is not JSON', async () => {
@@ -195,6 +199,48 @@ describe('saving', () => {
     );
 
     expect(response.status).toBe(413);
+  });
+
+  test.each(['cross-site', 'same-site'])(
+    'rejects a request a browser sent from another site (%s)',
+    async (fetchSite) => {
+      const store = new MemoryStore();
+      const response = await saveContent(
+        request(valid, principal(['editor']), fetchSite),
+        store,
+        log,
+      );
+
+      expect(response.status).toBe(403);
+      expect(store.writes).toBe(0);
+    },
+  );
+
+  test('accepts a request from the editing page itself', async () => {
+    const response = await saveContent(
+      request(valid, principal(['editor']), 'same-origin'),
+      new MemoryStore(),
+      log,
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  test('rejects a notice text longer than the bar can show', async () => {
+    const long = {
+      ...valid,
+      notices: [{ kind: 'info', text: 'x'.repeat(301), until: '2027-02-01' }],
+    };
+    const response = await saveContent(
+      request(long, principal(['editor'])),
+      new MemoryStore(),
+      log,
+    );
+
+    expect(response.status).toBe(400);
+    expect(JSON.stringify(response.jsonBody)).toContain(
+      'Bitte höchstens 300 Zeichen.',
+    );
   });
 
   test('answers 503 when no store is configured', async () => {

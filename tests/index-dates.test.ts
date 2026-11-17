@@ -28,6 +28,20 @@ describe('the start page at build time', () => {
     expect(rows[0]).toContain('data-weekday="tuesday"');
   });
 
+  test('says "heute" in words next to that weekday only', async () => {
+    const html = await renderAt('2026-11-16T23:30:00Z');
+    const labels = [...html.matchAll(/<span data-today-label[^>]*>/g)].map(
+      ([tag]) => tag,
+    );
+    const visible = labels.filter((tag) => !/\shidden/.test(tag));
+
+    expect(labels).toHaveLength(7);
+    expect(visible).toEqual(['<span data-today-label class="font-normal">']);
+    expect(html).toMatch(
+      /Dienstag<span data-today-label class="font-normal"> \(heute\)<\/span>/,
+    );
+  });
+
   test('shows the holiday notice while it runs', async () => {
     const html = await renderAt('2026-12-24T10:00:00Z');
 
