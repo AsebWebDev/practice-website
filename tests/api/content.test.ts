@@ -4,24 +4,38 @@ import {
   saveContent,
   type Request,
 } from '../../api/src/handlers/content.ts';
-import type {
-  ContentKey,
-  ContentStore,
-  StoredContent,
+import {
+  ConflictError,
+  type ContentKey,
+  type ContentStore,
+  type StoredContent,
+  type Version,
 } from '../../api/src/lib/store.ts';
 import { notices, openingHours } from '../../src/content';
 
+/** Behaves like the table: every save gives each part a new version. */
 class MemoryStore implements ContentStore {
   content: StoredContent = {};
+  version: Version = {};
   writes = 0;
 
   async read() {
-    return structuredClone(this.content);
+    return {
+      content: structuredClone(this.content),
+      version: { ...this.version },
+    };
   }
 
-  async write(content: Record<ContentKey, unknown>) {
-    this.content = structuredClone(content);
+  async write(content: Record<ContentKey, unknown>, version: Version) {
+    for (const key of Object.keys(content) as ContentKey[]) {
+      if (version[key] !== this.version[key]) throw new ConflictError();
+    }
     this.writes += 1;
+    this.content = structuredClone(content);
+    for (const key of Object.keys(content) as ContentKey[]) {
+      this.version[key] = `v${this.writes}`;
+    }
+    return { ...this.version };
   }
 }
 
@@ -60,13 +74,13 @@ const newNotices = [
   { kind: 'info', text: 'Neue Telefonnummer ab Januar', until: '2027-02-01' },
 ];
 
-const valid = { openingHours: newHours, notices: newNotices };
+const valid = { openingHours: newHours, notices: newNotices, version: {} };
 
 describe('reading', () => {
   test('falls back to the built content when nothing is stored', async () => {
     const response = await getContent(new MemoryStore(), log);
 
-    expect(response.jsonBody).toEqual({ openingHours, notices });
+    expect(response.jsonBody).toEqual({ openingHours, notices, version: {} });
     expect(response.headers).toEqual({
       'cache-control': 'no-store',
       'x-content-type-options': 'nosniff',
@@ -76,19 +90,19 @@ describe('reading', () => {
   test('falls back when no store is configured', async () => {
     const response = await getContent(undefined, log);
 
-    expect(response.jsonBody).toEqual({ openingHours, notices });
+    expect(response.jsonBody).toEqual({ openingHours, notices, version: {} });
   });
 
   test('falls back when the store cannot be reached, and logs it', async () => {
     const broken: ContentStore = {
       read: () => Promise.reject(new Error('offline')),
-      write: () => Promise.resolve(),
+      write: () => Promise.resolve({}),
     };
     log.error.mockClear();
 
     const response = await getContent(broken, log);
 
-    expect(response.jsonBody).toEqual({ openingHours, notices });
+    expect(response.jsonBody).toEqual({ openingHours, notices, version: {} });
     expect(log.error).toHaveBeenCalledOnce();
   });
 
@@ -98,7 +112,11 @@ describe('reading', () => {
 
     const response = await getContent(store, log);
 
-    expect(response.jsonBody).toEqual({ openingHours, notices: newNotices });
+    expect(response.jsonBody).toEqual({
+      openingHours,
+      notices: newNotices,
+      version: {},
+    });
   });
 });
 
@@ -144,8 +162,60 @@ describe('saving', () => {
     expect(response.status).toBe(200);
     expect(store.writes).toBe(1);
 
-    const read = await getContent(store, log);
-    expect(read.jsonBody).toEqual(valid);
+    const saved = {
+      openingHours: newHours,
+      notices: newNotices,
+      version: { openingHours: 'v1', notices: 'v1' },
+    };
+    expect(response.jsonBody).toEqual(saved);
+    expect((await getContent(store, log)).jsonBody).toEqual(saved);
+  });
+
+  test('refuses a save based on an older version and keeps the newer one', async () => {
+    const store = new MemoryStore();
+    const editor = principal(['editor']);
+
+    // Two people open the form while nothing is saved yet.
+    const first = await saveContent(request(valid, editor), store, log);
+    const second = await saveContent(
+      request({ ...valid, notices: [] }, editor),
+      store,
+      log,
+    );
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(409);
+    expect(store.writes).toBe(1);
+    expect(store.content.notices).toEqual(newNotices);
+  });
+
+  test('accepts the next save from the same person with the new version', async () => {
+    const store = new MemoryStore();
+    const editor = principal(['editor']);
+
+    const first = await saveContent(request(valid, editor), store, log);
+    const { version } = first.jsonBody as { version: object };
+    const again = await saveContent(
+      request({ ...valid, notices: [], version }, editor),
+      store,
+      log,
+    );
+
+    expect(again.status).toBe(200);
+    expect(store.content.notices).toEqual([]);
+  });
+
+  test('rejects a save without a version', async () => {
+    const response = await saveContent(
+      request(
+        { openingHours: valid.openingHours, notices: valid.notices },
+        principal(['editor']),
+      ),
+      new MemoryStore(),
+      log,
+    );
+
+    expect(response.status).toBe(400);
   });
 
   test.each([

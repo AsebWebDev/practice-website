@@ -1,4 +1,5 @@
 import type { HttpResponseInit } from '@azure/functions';
+import { z } from 'zod';
 import { notices, openingHours } from '../../../src/content/index.ts';
 import {
   editableContentSchema,
@@ -6,7 +7,11 @@ import {
   openingHoursSchema,
 } from '../../../src/content/schema.ts';
 import { isEditor, readPrincipal } from '../lib/principal.ts';
-import type { ContentStore } from '../lib/store.ts';
+import {
+  ConflictError,
+  type ContentStore,
+  type Version,
+} from '../lib/store.ts';
 
 /** The parts of the request the handlers use, so tests need no host. */
 export type Request = {
@@ -20,6 +25,17 @@ export type Log = { error(...args: unknown[]): void };
 const maxBodyBytes = 64 * 1024;
 
 // Static Web Apps does not add its global headers to API responses.
+/**
+ * What the editing page sends: the content plus the version it started
+ * from, so a save can be refused when someone else saved in between.
+ */
+const saveRequestSchema = editableContentSchema.extend({
+  version: z.object({
+    openingHours: z.string().optional(),
+    notices: z.string().optional(),
+  }),
+});
+
 const noStore = {
   'cache-control': 'no-store',
   'x-content-type-options': 'nosniff',
@@ -34,11 +50,12 @@ export async function getContent(
   store: ContentStore | undefined,
   log: Log,
 ): Promise<HttpResponseInit> {
-  let stored: Awaited<ReturnType<ContentStore['read']>> = {};
+  let stored: Awaited<ReturnType<ContentStore['read']>>['content'] = {};
+  let version: Version = {};
 
   if (store) {
     try {
-      stored = await store.read();
+      ({ content: stored, version } = await store.read());
     } catch (error) {
       log.error('Reading the content store failed', error);
     }
@@ -51,6 +68,7 @@ export async function getContent(
     jsonBody: {
       openingHours: storedHours.success ? storedHours.data : openingHours,
       notices: storedNotices.success ? storedNotices.data : notices,
+      version,
     },
     headers: noStore,
   };
@@ -105,7 +123,7 @@ export async function saveContent(
     return { status: 400, jsonBody: { error: 'Not valid JSON.' } };
   }
 
-  const parsed = editableContentSchema.safeParse(data);
+  const parsed = saveRequestSchema.safeParse(data);
 
   if (!parsed.success) {
     return {
@@ -120,12 +138,25 @@ export async function saveContent(
     };
   }
 
+  const { version, ...content } = parsed.data;
+  let newVersion: Version;
+
   try {
-    await store.write(parsed.data);
+    newVersion = await store.write(content, version);
   } catch (error) {
+    if (error instanceof ConflictError) {
+      return {
+        status: 409,
+        jsonBody: { error: 'Someone else saved in the meantime.' },
+      };
+    }
     log.error('Writing the content store failed', error);
     return { status: 502, jsonBody: { error: 'Saving failed.' } };
   }
 
-  return { status: 200, jsonBody: parsed.data, headers: noStore };
+  return {
+    status: 200,
+    jsonBody: { ...content, version: newVersion },
+    headers: noStore,
+  };
 }

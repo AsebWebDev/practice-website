@@ -4,10 +4,31 @@ export type ContentKey = 'openingHours' | 'notices';
 
 export type StoredContent = Partial<Record<ContentKey, unknown>>;
 
+/**
+ * Which state of each part someone has seen, as the table's own version
+ * tags (ETags). A part that was never saved has no entry.
+ */
+export type Version = Partial<Record<ContentKey, string>>;
+
+/** Someone else saved since the given version was read. */
+export class ConflictError extends Error {
+  constructor() {
+    super('The content changed since it was read.');
+    this.name = 'ConflictError';
+  }
+}
+
 /** Where the editable content lives. Tests use an in-memory version. */
 export interface ContentStore {
-  read(): Promise<StoredContent>;
-  write(content: Record<ContentKey, unknown>): Promise<void>;
+  read(): Promise<{ content: StoredContent; version: Version }>;
+  /**
+   * Saves both parts, but only if they are still at the given version;
+   * otherwise throws ConflictError. Returns the new version.
+   */
+  write(
+    content: Record<ContentKey, unknown>,
+    version: Version,
+  ): Promise<Version>;
 }
 
 const tableName = 'content';
@@ -46,9 +67,10 @@ export class TableContentStore implements ContentStore {
     );
   }
 
-  read(): Promise<StoredContent> {
+  read(): Promise<{ content: StoredContent; version: Version }> {
     return this.withTable(async () => {
       const content: StoredContent = {};
+      const version: Version = {};
 
       const rows = this.client.listEntities<ContentEntity>({
         queryOptions: { filter: `PartitionKey eq '${partitionKey}'` },
@@ -56,6 +78,7 @@ export class TableContentStore implements ContentStore {
 
       for await (const row of rows) {
         if (row.rowKey !== 'openingHours' && row.rowKey !== 'notices') continue;
+        version[row.rowKey] = row.etag;
         try {
           content[row.rowKey] = JSON.parse(row.json);
         } catch {
@@ -64,23 +87,47 @@ export class TableContentStore implements ContentStore {
         }
       }
 
-      return content;
+      return { content, version };
     });
   }
 
-  write(content: Record<ContentKey, unknown>): Promise<void> {
+  write(
+    content: Record<ContentKey, unknown>,
+    version: Version,
+  ): Promise<Version> {
+    const keys = Object.keys(content) as ContentKey[];
+
     return this.withTable(async () => {
-      await this.client.submitTransaction(
-        (Object.keys(content) as ContentKey[]).map((rowKey) => [
-          'upsert',
-          {
-            partitionKey,
+      try {
+        // Both parts change together or not at all. A part that has a
+        // version is only replaced if it is still at that version; a part
+        // without one is only created if nobody created it meanwhile.
+        const response = await this.client.submitTransaction(
+          keys.map((rowKey) => {
+            const entity: ContentEntity = {
+              partitionKey,
+              rowKey,
+              json: JSON.stringify(content[rowKey]),
+            };
+            const etag = version[rowKey];
+            return etag
+              ? ['update', entity, 'Replace', { etag }]
+              : ['create', entity];
+          }),
+        );
+
+        // Answers to an update do not name their row, so the new versions
+        // are taken in the order of the actions.
+        return Object.fromEntries(
+          keys.map((rowKey, index) => [
             rowKey,
-            json: JSON.stringify(content[rowKey]),
-          } satisfies ContentEntity,
-          'Replace',
-        ]),
-      );
+            response.subResponses[index]?.etag,
+          ]),
+        ) as Version;
+      } catch (error) {
+        if (isConflict(error)) throw new ConflictError();
+        throw error;
+      }
     });
   }
 
@@ -109,12 +156,37 @@ export class TableContentStore implements ContentStore {
   }
 }
 
+function errorDetails(error: unknown): { status?: unknown; code?: unknown } {
+  if (typeof error !== 'object' || error === null) return {};
+  const message = 'message' in error ? String(error.message) : '';
+  return {
+    status: 'statusCode' in error ? error.statusCode : undefined,
+    // Some answers carry the error code only inside the message text.
+    code:
+      'code' in error && error.code
+        ? error.code
+        : message.includes('TableNotFound')
+          ? 'TableNotFound'
+          : undefined,
+  };
+}
+
 function isTableMissing(error: unknown): boolean {
+  const { status, code } = errorDetails(error);
+  return status === 404 && code === 'TableNotFound';
+}
+
+/**
+ * The table refuses a conditional write with 412 when the row changed, with
+ * 409 when a row to be created already exists, and with 404 when a row to
+ * be replaced was deleted. Each means someone else saved in between.
+ */
+function isConflict(error: unknown): boolean {
+  const { status, code } = errorDetails(error);
   return (
-    typeof error === 'object' &&
-    error !== null &&
-    'statusCode' in error &&
-    error.statusCode === 404
+    status === 412 ||
+    status === 409 ||
+    (status === 404 && code !== 'TableNotFound')
   );
 }
 
