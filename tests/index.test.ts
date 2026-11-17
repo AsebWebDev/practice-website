@@ -12,7 +12,7 @@ beforeAll(async () => {
 
 describe('the start page', () => {
   test('declares German as its language', () => {
-    expect(html).toContain('<html lang="de">');
+    expect(html).toMatch(/<html lang="de"[ >]/);
   });
 
   test('has exactly one main heading, the practice name', () => {

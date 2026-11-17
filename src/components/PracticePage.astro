@@ -1,0 +1,89 @@
+---
+import { practice } from '../content';
+import type { DesignId } from '../lib/designs.ts';
+import '../styles/global.css';
+import About from './About.astro';
+import Button from './Button.astro';
+import Contact from './Contact.astro';
+import DesignSwitcher from './DesignSwitcher.astro';
+import Logo from './Logo.astro';
+import Notices from './Notices.astro';
+import OpeningHours from './OpeningHours.astro';
+import Section from './Section.astro';
+import Services from './Services.astro';
+
+interface Props {
+  design: DesignId;
+}
+
+const { design } = Astro.props;
+---
+
+<!doctype html>
+<html lang="de" data-design={design}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{practice.name}</title>
+    <meta name="description" content={practice.greeting} />
+  </head>
+  <body>
+    <a
+      href="#inhalt"
+      class="bg-surface text-ink sr-only rounded-full px-4 py-2 font-semibold focus:not-sr-only focus:absolute focus:top-2 focus:left-2"
+    >
+      Zum Inhalt springen
+    </a>
+
+    <DesignSwitcher current={design} />
+
+    <header class="bg-tint">
+      <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16">
+        <Logo variant={design === 'b' ? 'smile' : 'monogram'} />
+        <h1 class="font-heading mt-6 text-3xl font-semibold sm:text-5xl">
+          {practice.name}
+        </h1>
+        <p class="mt-4 max-w-prose text-lg">{practice.greeting}</p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Button href={`tel:${practice.phone.international}`}>
+            Anrufen: {practice.phone.display}
+          </Button>
+          <Button href={practice.directions.mapUrl} variant="secondary">
+            Route planen
+          </Button>
+        </div>
+      </div>
+    </header>
+
+    <Notices />
+
+    <main id="inhalt">
+      <Section id="oeffnungszeiten" title="Öffnungszeiten">
+        <OpeningHours />
+      </Section>
+      <Section id="leistungen" title="Unsere Leistungen" tinted>
+        <Services />
+      </Section>
+      <Section id="praxis" title="Über die Praxis">
+        <About />
+      </Section>
+      <Section id="kontakt" title="Kontakt und Anfahrt" tinted>
+        <Contact />
+      </Section>
+    </main>
+
+    <footer class="bg-accent-strong text-on-accent">
+      <div class="mx-auto flex max-w-5xl flex-col gap-2 px-4 py-8 text-sm sm:flex-row sm:justify-between sm:px-6">
+        <p>{practice.name}</p>
+        <ul class="flex flex-col gap-2 sm:flex-row sm:gap-6">
+          <li>Impressum (folgt)</li>
+          <li>Datenschutz (folgt)</li>
+        </ul>
+      </div>
+    </footer>
+
+    <script>
+      import '../scripts/apply-dates.ts';
+    </script>
+  </body>
+</html>

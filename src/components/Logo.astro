@@ -1,22 +1,41 @@
 ---
-// Placeholder until the practice has a real logo: the owner's initials in
-// a soft rounded frame.
+interface Props {
+  variant: 'monogram' | 'smile';
+}
+
+// Both variants are placeholders until the practice has a real logo.
+const { variant } = Astro.props;
 ---
 
-<svg
-  viewBox="0 0 48 48"
-  width="48"
-  height="48"
-  aria-hidden="true"
-  class="shrink-0"
->
-  <rect width="48" height="48" rx="14" class="fill-accent"></rect>
-  <text
-    x="24"
-    y="31"
-    text-anchor="middle"
-    class="fill-on-accent font-heading text-[19px] font-semibold"
+{variant === 'monogram' ? (
+  <svg
+    viewBox="0 0 48 48"
+    width="48"
+    height="48"
+    aria-hidden="true"
+    class="shrink-0"
   >
-    MS
-  </text>
-</svg>
+    <rect width="48" height="48" rx="14" class="fill-accent" />
+    <text
+      x="24"
+      y="31"
+      text-anchor="middle"
+      class="fill-on-accent font-heading text-[19px] font-semibold"
+    >
+      MS
+    </text>
+  </svg>
+) : (
+  <svg
+    viewBox="0 0 72 32"
+    width="72"
+    height="32"
+    fill="none"
+    stroke-width="4"
+    stroke-linecap="round"
+    aria-hidden="true"
+    class="stroke-accent shrink-0"
+  >
+    <path d="M6 8c12 20 48 20 60 0" />
+  </svg>
+)}
