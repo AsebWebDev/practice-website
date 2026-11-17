@@ -63,7 +63,10 @@ describe('reading', () => {
     const response = await getContent(new MemoryStore(), log);
 
     expect(response.jsonBody).toEqual({ openingHours, notices });
-    expect(response.headers).toEqual({ 'cache-control': 'no-store' });
+    expect(response.headers).toEqual({
+      'cache-control': 'no-store',
+      'x-content-type-options': 'nosniff',
+    });
   });
 
   test('falls back when no store is configured', async () => {
