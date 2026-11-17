@@ -47,6 +47,8 @@ The digest pins Azurite 3.37.0.
 
 Opening hours, notices, services and practice details live in `src/content/` and are checked against `src/content/schema.ts` at build time. A file that fails the check stops the build, and the published site stays as it is.
 
+Opening hours and notices are edited on `/pflege/` and stored in Azure Table Storage; the site loads them from `/api/content`. To put the saved state into the HTML as well, run `CONTENT_URL=https://<site>/api/content pnpm fetch-content` before `pnpm build`. It overwrites the two JSON files in the working tree, so it is meant for CI. When the API does not answer or a part is invalid, the files from the repository stay and the build goes on.
+
 ## Infrastructure
 
 `infra/` describes the Azure resources with Terraform: a resource group, a storage account with the `content` table, the Static Web App (Free plan) with the storage connection as app setting, and a monthly budget alert.
