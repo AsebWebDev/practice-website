@@ -1,0 +1,258 @@
+---
+import DraftBanner from '../../components/DraftBanner.astro';
+import { practice } from '../../content';
+import { weekdayLabels } from '../../lib/opening-hours.ts';
+import { weekdays } from '../../lib/weekdays.ts';
+import '../../styles/global.css';
+
+const field =
+  'border-line bg-surface min-h-12 w-full rounded-xl border px-3 py-2 text-base aria-[invalid=true]:border-red-700 aria-[invalid=true]:border-2';
+const secondaryButton =
+  'border-accent text-accent-strong hover:bg-tint bg-surface inline-flex min-h-11 items-center justify-center rounded-full border-2 px-4 text-sm font-semibold';
+const errorText = 'mt-1 text-sm font-semibold text-red-800';
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pflege: {practice.name}</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body>
+    <DraftBanner />
+
+    <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+      <h1 class="font-heading text-2xl font-semibold sm:text-3xl">
+        Öffnungszeiten und Hinweise
+      </h1>
+
+      <p data-view="loading" class="text-muted mt-6">
+        Wird geladen …
+      </p>
+
+      <div data-view="signed-out" hidden class="mt-6 space-y-4">
+        <p>Bitte melden Sie sich mit Ihrem Microsoft-Konto an.</p>
+        <a
+          href="/.auth/login/aad?post_login_redirect_uri=/pflege/"
+          class="bg-accent text-on-accent hover:bg-accent-strong inline-flex min-h-12 items-center rounded-full px-6 font-semibold no-underline"
+        >
+          Anmelden
+        </a>
+      </div>
+
+      <div data-view="forbidden" hidden class="mt-6 space-y-4">
+        <p>
+          Sie sind als <strong data-user></strong> angemeldet. Dieses Konto ist
+          nicht für die Pflege freigeschaltet. Bitte wenden Sie sich an die
+          Praxisleitung.
+        </p>
+        <a
+          href="/.auth/logout?post_logout_redirect_uri=/pflege/"
+          class="underline"
+        >
+          Mit einem anderen Konto anmelden
+        </a>
+      </div>
+
+      <div data-view="unavailable" hidden class="mt-6">
+        <p>
+          Die Pflege ist gerade nicht erreichbar. Bitte versuchen Sie es in
+          einigen Minuten noch einmal.
+        </p>
+      </div>
+
+      <form data-view="ready" hidden novalidate class="mt-6">
+        <p class="text-muted text-sm">
+          Angemeldet als <strong data-user></strong>.
+          <a href="/.auth/logout?post_logout_redirect_uri=/" class="underline">
+            Abmelden
+          </a>
+        </p>
+
+        <div
+          data-error-summary
+          hidden
+          tabindex="-1"
+          class="mt-6 rounded-xl border-2 border-red-700 bg-red-50 p-4"
+        >
+          <h2 class="font-semibold text-red-900">
+            Bitte prüfen Sie diese Angaben:
+          </h2>
+          <ul class="mt-2 list-disc space-y-1 pl-5 text-red-900"></ul>
+        </div>
+
+        <section aria-labelledby="hours-heading" class="mt-8">
+          <h2 id="hours-heading" class="font-heading text-xl font-semibold">
+            Öffnungszeiten
+          </h2>
+          <p class="text-muted mt-2 text-sm">
+            Ein Tag ohne Zeitraum gilt als geschlossen. Zwei Zeiträume ergeben
+            eine Mittagspause.
+          </p>
+
+          <div class="mt-4 space-y-4">
+            {weekdays.map((day) => (
+              <fieldset
+                data-day={day}
+                data-label={weekdayLabels[day]}
+                data-path={`openingHours.days.${day}`}
+                class="border-line bg-surface rounded-2xl border p-4"
+              >
+                <legend class="px-1 font-semibold">{weekdayLabels[day]}</legend>
+                <ul data-ranges class="space-y-3" />
+                <p data-closed class="text-muted">
+                  geschlossen
+                </p>
+                <p data-error hidden class={errorText} />
+                <button
+                  type="button"
+                  data-add-range
+                  class:list={[secondaryButton, 'mt-3']}
+                >
+                  Zeitraum hinzufügen
+                </button>
+              </fieldset>
+            ))}
+          </div>
+
+          <div data-wrapper class="mt-4">
+            <label for="note" class="font-semibold">
+              Satz unter der Tabelle (freiwillig)
+            </label>
+            <textarea
+              id="note"
+              data-path="openingHours.note"
+              rows="2"
+              class:list={[field, 'mt-1']}
+            ></textarea>
+            <p data-error hidden class={errorText}></p>
+          </div>
+        </section>
+
+        <section aria-labelledby="notices-heading" class="mt-10">
+          <h2 id="notices-heading" class="font-heading text-xl font-semibold">
+            Hinweise
+          </h2>
+          <p class="text-muted mt-2 text-sm">
+            Hinweise erscheinen oben auf der Seite, vom ersten bis zum letzten
+            Tag. Danach verschwinden sie von selbst.
+          </p>
+          <ul data-notices class="mt-4 space-y-4"></ul>
+          <p data-no-notices class="text-muted mt-4">
+            Zurzeit gibt es keine Hinweise.
+          </p>
+          <button
+            type="button"
+            data-add-notice
+            class:list={[secondaryButton, 'mt-4']}
+          >
+            Hinweis hinzufügen
+          </button>
+        </section>
+
+        <div class="border-line bg-page sticky bottom-0 mt-10 flex flex-col gap-2 border-t py-4 sm:flex-row sm:items-center sm:gap-4">
+          <button
+            type="submit"
+            class="bg-accent text-on-accent hover:bg-accent-strong inline-flex min-h-12 items-center justify-center rounded-full px-8 font-semibold disabled:opacity-60"
+          >
+            Speichern
+          </button>
+          <p data-status role="status" class="text-sm font-semibold"></p>
+        </div>
+      </form>
+
+      <template id="range-template">
+        <li data-range class="flex flex-wrap items-end gap-3">
+          <div data-wrapper class="min-w-28 flex-1">
+            <label class="text-sm font-semibold">
+              von
+              <input
+                type="time"
+                data-field="from"
+                class:list={[field, 'mt-1']}
+              />
+            </label>
+            <p data-error hidden class={errorText}></p>
+          </div>
+          <div data-wrapper class="min-w-28 flex-1">
+            <label class="text-sm font-semibold">
+              bis
+              <input type="time" data-field="to" class:list={[field, 'mt-1']} />
+            </label>
+            <p data-error hidden class={errorText}></p>
+          </div>
+          <button type="button" data-remove class={secondaryButton}>
+            Entfernen
+          </button>
+        </li>
+      </template>
+
+      <template id="notice-template">
+        <li data-notice class="border-line bg-surface rounded-2xl border p-4">
+          <fieldset class="space-y-4">
+            <legend class="font-semibold">
+              Hinweis <span data-number></span>
+              <span data-expired hidden class="text-muted font-normal">
+                (abgelaufen, wird nicht mehr angezeigt)
+              </span>
+            </legend>
+            <div data-wrapper>
+              <label class="text-sm font-semibold">
+                Art
+                <select data-field="kind" class:list={[field, 'mt-1']}>
+                  <option value="closed">Praxis geschlossen</option>
+                  <option value="info">Allgemeiner Hinweis</option>
+                </select>
+              </label>
+              <p data-error hidden class={errorText}></p>
+            </div>
+            <div data-wrapper>
+              <label class="text-sm font-semibold">
+                Text
+                <textarea
+                  data-field="text"
+                  rows="3"
+                  class:list={[field, 'mt-1']}
+                ></textarea>
+              </label>
+              <p data-error hidden class={errorText}></p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <div data-wrapper class="min-w-40 flex-1">
+                <label class="text-sm font-semibold">
+                  Erster Tag (leer = ab sofort)
+                  <input
+                    type="date"
+                    data-field="from"
+                    class:list={[field, 'mt-1']}
+                  />
+                </label>
+                <p data-error hidden class={errorText}></p>
+              </div>
+              <div data-wrapper class="min-w-40 flex-1">
+                <label class="text-sm font-semibold">
+                  Letzter Tag
+                  <input
+                    type="date"
+                    data-field="until"
+                    class:list={[field, 'mt-1']}
+                  />
+                </label>
+                <p data-error hidden class={errorText}></p>
+              </div>
+            </div>
+            <button type="button" data-remove class={secondaryButton}>
+              Löschen
+            </button>
+          </fieldset>
+        </li>
+      </template>
+    </main>
+
+    <script>
+      import '../../scripts/editor.ts';
+    </script>
+  </body>
+</html>

@@ -1,7 +1,7 @@
 import type { HttpResponseInit } from '@azure/functions';
-import { z } from 'zod';
 import { notices, openingHours } from '../../../src/content/index.ts';
 import {
+  editableContentSchema,
   noticesSchema,
   openingHoursSchema,
 } from '../../../src/content/schema.ts';
@@ -15,11 +15,6 @@ export type Request = {
 };
 
 export type Log = { error(...args: unknown[]): void };
-
-export const editableContentSchema = z.object({
-  openingHours: openingHoursSchema,
-  notices: noticesSchema,
-});
 
 // A full week of hours and a long list of notices stay well below this.
 const maxBodyBytes = 64 * 1024;

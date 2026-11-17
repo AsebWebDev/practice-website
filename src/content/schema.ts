@@ -1,27 +1,36 @@
 import { z } from 'zod';
 
-const text = z.string().trim().min(1);
+// Messages are German because the practice staff see them in the editing
+// form. They also appear in build errors.
+const text = z.string().trim().min(1, 'Bitte einen Text eingeben.');
 
 const time = z
   .string()
-  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'must be a time like 08:30');
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Bitte eine Uhrzeit wie 08:30 eingeben.');
 
 const timeRange = z
   .object({ from: time, to: time })
   .refine((range) => range.from < range.to, {
-    message: '"from" must be earlier than "to"',
+    message: 'Das Ende muss nach dem Beginn liegen.',
+    path: ['to'],
   });
 
 // An empty list means the practice is closed that day. Two ranges describe
 // a day with a lunch break.
-const dayHours = z.array(timeRange).refine(
-  (ranges) =>
-    ranges.every((range, index) => {
-      const previous = ranges[index - 1];
-      return !previous || previous.to <= range.from;
-    }),
-  { message: 'time ranges must be in order and must not overlap' },
-);
+const dayHours = z
+  .array(timeRange)
+  .max(3, 'Höchstens drei Zeiträume pro Tag.')
+  .refine(
+    (ranges) =>
+      ranges.every((range, index) => {
+        const previous = ranges[index - 1];
+        return !previous || previous.to <= range.from;
+      }),
+    {
+      message:
+        'Die Zeiträume müssen nacheinander liegen und dürfen sich nicht überschneiden.',
+    },
+  );
 
 export const openingHoursSchema = z.object({
   days: z.object({
@@ -36,20 +45,29 @@ export const openingHoursSchema = z.object({
   note: text.optional(),
 });
 
+const date = z.iso.date('Bitte ein Datum wählen.');
+
 export const noticeSchema = z
   .object({
-    kind: z.enum(['info', 'closed']),
+    kind: z.enum(['info', 'closed'], 'Bitte eine Art wählen.'),
     text,
     // Without "from" the notice shows as soon as it is published.
-    from: z.iso.date().optional(),
+    from: date.optional(),
     // The last day on which the notice is shown.
-    until: z.iso.date(),
+    until: date,
   })
   .refine((notice) => !notice.from || notice.from <= notice.until, {
-    message: '"from" must not be later than "until"',
+    message: 'Der erste Tag darf nicht nach dem letzten liegen.',
+    path: ['from'],
   });
 
 export const noticesSchema = z.array(noticeSchema);
+
+/** What the editing form saves and the API accepts. */
+export const editableContentSchema = z.object({
+  openingHours: openingHoursSchema,
+  notices: noticesSchema,
+});
 
 export const serviceIcons = [
   'checkup',

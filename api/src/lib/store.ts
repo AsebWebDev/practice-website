@@ -40,47 +40,73 @@ export class TableContentStore implements ContentStore {
     );
   }
 
-  async read(): Promise<StoredContent> {
-    await this.ensureTable();
-    const content: StoredContent = {};
+  read(): Promise<StoredContent> {
+    return this.withTable(async () => {
+      const content: StoredContent = {};
 
-    const rows = this.client.listEntities<ContentEntity>({
-      queryOptions: { filter: `PartitionKey eq '${partitionKey}'` },
-    });
+      const rows = this.client.listEntities<ContentEntity>({
+        queryOptions: { filter: `PartitionKey eq '${partitionKey}'` },
+      });
 
-    for await (const row of rows) {
-      if (row.rowKey === 'openingHours' || row.rowKey === 'notices') {
-        content[row.rowKey] = JSON.parse(row.json);
+      for await (const row of rows) {
+        if (row.rowKey === 'openingHours' || row.rowKey === 'notices') {
+          content[row.rowKey] = JSON.parse(row.json);
+        }
       }
-    }
 
-    return content;
+      return content;
+    });
   }
 
-  async write(
-    content: Record<ContentKey, unknown>,
-    editor: string,
-  ): Promise<void> {
-    await this.ensureTable();
+  write(content: Record<ContentKey, unknown>, editor: string): Promise<void> {
+    return this.withTable(async () => {
+      await this.client.submitTransaction(
+        (Object.keys(content) as ContentKey[]).map((rowKey) => [
+          'upsert',
+          {
+            partitionKey,
+            rowKey,
+            json: JSON.stringify(content[rowKey]),
+            updatedBy: editor,
+          } satisfies ContentEntity,
+          'Replace',
+        ]),
+      );
+    });
+  }
 
-    await this.client.submitTransaction(
-      (Object.keys(content) as ContentKey[]).map((rowKey) => [
-        'upsert',
-        {
-          partitionKey,
-          rowKey,
-          json: JSON.stringify(content[rowKey]),
-          updatedBy: editor,
-        } satisfies ContentEntity,
-        'Replace',
-      ]),
-    );
+  /**
+   * Runs an operation once the table exists. A failed creation is not
+   * remembered, and a table that went missing is created again, so one
+   * hiccup does not break saving until the function restarts.
+   */
+  private async withTable<T>(operation: () => Promise<T>): Promise<T> {
+    try {
+      await this.ensureTable();
+      return await operation();
+    } catch (error) {
+      this.tableReady = undefined;
+      if (!isTableMissing(error)) throw error;
+
+      await this.ensureTable();
+      return operation();
+    }
   }
 
   private ensureTable(): Promise<void> {
+    // createTable succeeds without change when the table already exists.
     this.tableReady ??= this.client.createTable();
     return this.tableReady;
   }
+}
+
+function isTableMissing(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'statusCode' in error &&
+    error.statusCode === 404
+  );
 }
 
 let defaultStore: ContentStore | undefined;
